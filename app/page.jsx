@@ -123,28 +123,46 @@ function createHistory(initial) {
 }
 function historyPush(h, next) {
   return { past: [...h.past.slice(-19), h.present], present: next, future: [] };
-}
+  }
+
+
 function historyUndo(h) {
   if (!h.past.length) return h;
   const [prev, ...rest] = [...h.past].reverse();
   return { past: h.past.slice(0, -1), present: prev, future: [h.present, ...h.future] };
 }
+
 function historyRedo(h) {
   if (!h.future.length) return h;
   const [next, ...rest] = h.future;
   return { past: [...h.past, h.present], present: next, future: rest };
 }
 
+
+// ─── PDF-LIB LOADER ───────────────────────────────────────────────────────────
 // ─── PDF-LIB LOADER ───────────────────────────────────────────────────────────
 let _pdfLib = null;
+
 async function loadPdfLib() {
   if (_pdfLib) return _pdfLib;
-  if (window.PDFLib) { _pdfLib = window.PDFLib; return _pdfLib; }
+
+  if (window.PDFLib) {
+    _pdfLib = window.PDFLib;
+    return _pdfLib;
+  }
+
   return new Promise((resolve, reject) => {
     const s = document.createElement("script");
     s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js";
-    s.onload = () => { _pdfLib = window.PDFLib; resolve(_pdfLib); };
-    s.onerror = () => reject(new Error("Failed to load pdf-lib. Check your connection."));
+
+    s.onload = () => {
+      _pdfLib = window.PDFLib;
+      resolve(_pdfLib);
+    };
+
+    s.onerror = () =>
+      reject(new Error("Failed to load pdf-lib. Check your connection."));
+
     document.head.appendChild(s);
   });
 }
@@ -1878,6 +1896,7 @@ const TOOL_COMPONENTS = {
   batch:       (p) => <BatchTool {...p} />,
 };
 
+
 // ─── HOME PAGE ─────────────────────────────────────────────────────────────────
 function HomePage({ onOpenTool, addToast }) {
   const [search, setSearch] = useState("");
@@ -1975,9 +1994,10 @@ function HomePage({ onOpenTool, addToast }) {
         <p>Privacy-first PDF toolkit · Powered by pdf-lib · Runs entirely in your browser</p>
         <div style={{ marginTop: 10, opacity: 0.6 }}>Press <kbd style={{ padding: "1px 6px", borderRadius: 4, border: "1px solid var(--border)", background: "var(--surface2)", fontSize: "0.7rem" }}>?</kbd> for keyboard shortcuts</div>
       </footer>
-    </>
+        </>
   );
 }
+
 
 // ─── TOOL PAGE WRAPPER ────────────────────────────────────────────────────────
 function ToolPage({ tool, onBack, addToast }) {
@@ -2018,10 +2038,12 @@ export default function PDFStudio() {
   const theme = THEMES[themeName];
 
   const addToast = useCallback((type, msg) => {
-    const id = Date.now();
-    setToasts(t => [...t, { id, type, msg }]);
-    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3500);
-  }, []);
+  const id = Date.now();
+  setToasts(t => [...t, { id, type, msg }]);
+  setTimeout(() => {
+    setToasts(t => t.filter(x => x.id !== id));
+  }, 3500);
+}, []);
 
   const openTool = useCallback((tool) => { setActiveTool(tool); setView("tool"); }, []);
   const goHome = useCallback(() => { setView("home"); setActiveTool(null); }, []);

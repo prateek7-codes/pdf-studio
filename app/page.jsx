@@ -2029,9 +2029,10 @@ function ToolPage({ tool, onBack, addToast }) {
 }
 
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
-export default function PDFStudio() {
-  const [view, setView] = useState("home");
-  const [activeTool, setActiveTool] = useState(null);
+export default function PDFStudio({ initialToolId = null }) {
+  const initialTool = initialToolId ? TOOLS.find(t => t.id === initialToolId) : null;
+const [view, setView] = useState(initialTool ? "tool" : "home");
+const [activeTool, setActiveTool] = useState(initialTool);
   const [themeName, setThemeName] = useState("dark");
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [toasts, setToasts] = useState([]);

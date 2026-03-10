@@ -1811,46 +1811,89 @@ function SplitTool({ addToast }) {
   );
 }
 
+// REPLACE your entire CompressTool function with this.
+
 function CompressTool({ addToast }) {
   const s = useToolState(true);
   const level = s.options.level || "balanced";
+
   const handleRun = async () => {
     if (!s.files.length) { s.setError("Please add a PDF."); return; }
     s.setError(null); s.setProcessing(true); s.setProgress(0); s.setResults(null);
-    try { const r = await opCompress(s.files, s.options, s.setProgress); s.setResults(r); addToast("success", "Compression complete!"); }
-    catch(e) { s.setError(e.message); } s.setProcessing(false);
+    try {
+      const r = await opCompress(s.files, s.options, s.setProgress);
+      s.setResults(r);
+      const saved = r[0]?.savedPct;
+      if (saved > 0) addToast("success", `Compressed! Saved ${saved}%`);
+      else addToast("success", "Compression complete!");
+    }
+    catch(e) { s.setError(e.message); }
+    s.setProcessing(false);
   };
+
   return (
     <div>
       <div className="undo-bar">
         <button className="undo-btn" onClick={s.undo} disabled={!s.canUndo}>↩ Undo</button>
         <button className="undo-btn" onClick={s.redo} disabled={!s.canRedo}>↪ Redo</button>
-        {s.files.length > 0 && <span className="history-count">{s.files.length} file{s.files.length>1?"s":""}</span>}
+        {s.files.length > 0 && <span className="history-count">{s.files.length} file{s.files.length > 1 ? "s" : ""}</span>}
       </div>
+
       <Dropzone onFiles={s.addFiles} multiple label="Drop PDFs to compress" hint="Multiple files supported" />
       <FileList files={s.files} onRemove={s.removeFile} onClear={s.clearAll} />
+
       <div className="options-panel">
-        <div className="options-panel-header"><span className="options-panel-label">Compression Level</span></div>
+        <div className="options-panel-header">
+          <span className="options-panel-label">Compression Level</span>
+        </div>
         <div className="compress-levels">
           {[
-            { id: "light",    icon: "🌿", name: "Light",    desc: "Preserve quality" },
-            { id: "balanced", icon: "⚖️", name: "Balanced", desc: "Best tradeoff" },
-            { id: "maximum",  icon: "🗜️", name: "Maximum",  desc: "Smallest size" },
+            { id: "light",    icon: "🌿", name: "Light",    desc: "~20-30% smaller · Full quality" },
+            { id: "balanced", icon: "⚖️", name: "Balanced", desc: "~40-60% smaller · Great quality" },
+            { id: "maximum",  icon: "🗜️", name: "Maximum",  desc: "~60-75% smaller · Images only" },
           ].map(l => (
-            <div key={l.id} className={`compress-level-card${level === l.id ? " active" : ""}`} onClick={() => s.setOptions(o => ({ ...o, level: l.id }))} role="radio" aria-checked={level === l.id} tabIndex={0} onKeyDown={e => e.key === "Enter" && s.setOptions(o => ({ ...o, level: l.id }))}>
+            <div
+              key={l.id}
+              className={`compress-level-card${level === l.id ? " active" : ""}`}
+              onClick={() => s.setOptions(o => ({ ...o, level: l.id }))}
+              role="radio"
+              aria-checked={level === l.id}
+              tabIndex={0}
+              onKeyDown={e => e.key === "Enter" && s.setOptions(o => ({ ...o, level: l.id }))}
+            >
               <div className="compress-level-icon">{l.icon}</div>
               <div className="compress-level-name">{l.name}</div>
               <div className="compress-level-desc">{l.desc}</div>
             </div>
           ))}
         </div>
+
+        {/* Warning shown only when Maximum is selected */}
+        {level === "maximum" && (
+          <div style={{
+            marginTop: "14px",
+            padding: "10px 14px",
+            borderRadius: "10px",
+            background: "rgba(245,158,11,0.08)",
+            border: "1px solid rgba(245,158,11,0.25)",
+            color: "var(--warning, #f59e0b)",
+            fontSize: "0.78rem",
+            lineHeight: 1.6,
+          }}>
+            ⚠️ Maximum mode converts pages to images for the smallest file size.
+            Text in the output PDF won't be selectable or searchable.
+            Use Balanced if you need to copy text from the file.
+          </div>
+        )}
       </div>
+
       <ErrorBox message={s.error} onDismiss={() => s.setError(null)} />
-      {s.processing && <ProgressBar value={s.progress} label="Compressing" />}
+      {s.processing && <ProgressBar value={s.progress} label="Compressing — this may take a moment for large files" />}
       <ResultBox results={s.results} addToast={addToast} />
+
       <div className="actions">
         <button className="btn-primary" onClick={handleRun} disabled={s.processing || !s.files.length}>
-          {s.processing ? "Compressing…" : `◎ Compress ${s.files.length > 0 ? s.files.length + " File" + (s.files.length > 1 ? "s" : "") : "PDF"}`}
+          {s.processing ? "Compressing…" : `Compress ${s.files.length > 0 ? s.files.length + " File" + (s.files.length > 1 ? "s" : "") : "PDF"}`}
         </button>
         {s.files.length > 0 && <button className="btn-ghost" onClick={s.clearAll}>Clear</button>}
       </div>

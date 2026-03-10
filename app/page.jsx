@@ -103,18 +103,139 @@ const THEMES = {
   },
 };
 
-// ─── TOOLS ────────────────────────────────────────────────────────────────────
+// ─── SVG ICONS ────────────────────────────────────────────────────────────────
+// Add these icon components ABOVE your TOOLS array in page.jsx.
+// Then update the TOOLS array below to use them instead of Unicode symbols.
+
+function IconMerge({ size = 20, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 6H4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h4" />
+      <path d="M16 6h4a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-4" />
+      <path d="M12 2v20" />
+      <path d="M9 9l3-3 3 3" />
+      <path d="M9 15l3 3 3-3" />
+    </svg>
+  );
+}
+
+function IconSplit({ size = 20, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 3h5v5" />
+      <path d="M8 3H3v5" />
+      <path d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3" />
+      <path d="m15 9 6-6" />
+      <path d="M3 21l7.5-7.5" />
+      <path d="M21 21h-5v-5" />
+    </svg>
+  );
+}
+
+function IconCompress({ size = 20, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+      <path d="M4 7V4a2 2 0 0 1 2-2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3" />
+      <path d="M3 12h8" />
+      <path d="m7 8-4 4 4 4" />
+    </svg>
+  );
+}
+
+function IconRotate({ size = 20, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 2v6h-6" />
+      <path d="M21 13a9 9 0 1 1-3-7.7L21 8" />
+    </svg>
+  );
+}
+
+function IconOrganize({ size = 20, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="9" rx="1" />
+      <rect x="14" y="3" width="7" height="5" rx="1" />
+      <rect x="14" y="12" width="7" height="9" rx="1" />
+      <rect x="3" y="16" width="7" height="5" rx="1" />
+    </svg>
+  );
+}
+
+function IconWatermark({ size = 20, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+      <path d="M4 7V4a2 2 0 0 1 2-2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3" />
+      <path d="M3 15h6" />
+      <path d="M3 18h8" />
+      <path d="M3 21h6" />
+    </svg>
+  );
+}
+
+function IconPageNumbers({ size = 20, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+      <path d="M4 7V4a2 2 0 0 1 2-2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3" />
+      <path d="M3 21v-4" />
+      <path d="M3 17h2a1 1 0 0 0 0-2H3" />
+      <path d="M7 21v-4l2 2 2-2v4" />
+    </svg>
+  );
+}
+
+function IconImageToPdf({ size = 20, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="11" height="11" rx="2" />
+      <path d="m3 11 4-4 3 3" />
+      <circle cx="9.5" cy="6.5" r="1" fill={color} stroke="none" />
+      <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+      <path d="M14 14v-1a2 2 0 0 1 2-2h6v9a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-1" />
+    </svg>
+  );
+}
+
+function IconProtect({ size = 20, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      <circle cx="12" cy="16" r="1" fill={color} stroke="none" />
+    </svg>
+  );
+}
+
+function IconBatch({ size = 20, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15 2v4a2 2 0 0 0 2 2h4" />
+      <path d="M9 18H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9l5 5v5" />
+      <path d="M12 22v-6" />
+      <path d="M9 19l3 3 3-3" />
+      <rect x="12" y="14" width="8" height="6" rx="1" />
+    </svg>
+  );
+}
+
+// ─── TOOLS ARRAY ──────────────────────────────────────────────────────────────
+// REPLACE your existing TOOLS array in page.jsx with this one.
+// The only change is the icon field — everything else is identical.
+
 const TOOLS = [
-  { id: "merge",       icon: "⊕",  label: "Merge PDF",       desc: "Combine multiple PDFs into one",         color: "#6366f1", kbd: "M" },
-  { id: "split",       icon: "⊘",  label: "Split PDF",       desc: "Separate pages into individual files",   color: "#8b5cf6", kbd: "S" },
-  { id: "compress",    icon: "◎",  label: "Compress PDF",    desc: "Reduce file size intelligently",         color: "#06b6d4", kbd: "C" },
-  { id: "rotate",      icon: "↻",  label: "Rotate Pages",    desc: "Rotate all pages to any angle",          color: "#10b981", kbd: "R" },
-  { id: "organize",    icon: "⊟",  label: "Organize Pages",  desc: "Drag to reorder, delete, duplicate",     color: "#f97316", kbd: "O" },
-  { id: "watermark",   icon: "◈",  label: "Add Watermark",   desc: "Stamp text watermarks on all pages",     color: "#f59e0b", kbd: "W" },
-  { id: "pagenumbers", icon: "⊞",  label: "Page Numbers",    desc: "Add numbered footers to every page",     color: "#a855f7", kbd: "N" },
-  { id: "jpg-to-pdf",  icon: "◰",  label: "JPG → PDF",       desc: "Convert images to PDF format",           color: "#14b8a6", kbd: "J" },
-  { id: "protect",     icon: "⬡",  label: "Protect PDF",     desc: "Password-lock your documents",           color: "#ef4444", kbd: "P" },
-  { id: "batch",       icon: "⊠",  label: "Batch Process",   desc: "Process multiple PDFs at once",          color: "#ec4899", kbd: "B" },
+  { id: "merge",       icon: <IconMerge />,       label: "Merge PDF",       desc: "Combine multiple PDFs into one",         color: "#6366f1", kbd: "M" },
+  { id: "split",       icon: <IconSplit />,        label: "Split PDF",       desc: "Separate pages into individual files",   color: "#8b5cf6", kbd: "S" },
+  { id: "compress",    icon: <IconCompress />,     label: "Compress PDF",    desc: "Reduce file size intelligently",         color: "#06b6d4", kbd: "C" },
+  { id: "rotate",      icon: <IconRotate />,       label: "Rotate Pages",    desc: "Rotate all pages to any angle",          color: "#10b981", kbd: "R" },
+  { id: "organize",    icon: <IconOrganize />,     label: "Organize Pages",  desc: "Drag to reorder, delete, duplicate",     color: "#f97316", kbd: "O" },
+  { id: "watermark",   icon: <IconWatermark />,    label: "Add Watermark",   desc: "Stamp text watermarks on all pages",     color: "#f59e0b", kbd: "W" },
+  { id: "pagenumbers", icon: <IconPageNumbers />,  label: "Page Numbers",    desc: "Add numbered footers to every page",     color: "#a855f7", kbd: "N" },
+  { id: "jpg-to-pdf",  icon: <IconImageToPdf />,   label: "JPG → PDF",       desc: "Convert images to PDF format",           color: "#14b8a6", kbd: "J" },
+  { id: "protect",     icon: <IconProtect />,      label: "Protect PDF",     desc: "Password-lock your documents",           color: "#ef4444", kbd: "P" },
+  { id: "batch",       icon: <IconBatch />,        label: "Batch Process",   desc: "Process multiple PDFs at once",          color: "#ec4899", kbd: "B" },
 ];
 
 // ─── UNDO HISTORY ─────────────────────────────────────────────────────────────

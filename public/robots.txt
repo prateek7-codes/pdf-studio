@@ -1,0 +1,11 @@
+# PDF Studio — robots.txt
+# Allow all search engines to index everything
+
+User-agent: *
+Allow: /
+
+# Point to sitemap for faster discovery
+Sitemap: https://pdf-studio-nu.vercel.app/sitemap.xml
+
+# No crawl restrictions — this is a public tool
+# Update the Sitemap URL when you get a custom domain

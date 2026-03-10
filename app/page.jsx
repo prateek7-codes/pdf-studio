@@ -1289,7 +1289,7 @@ function Dropzone({ onFiles, accept = "pdf", multiple = false, label = "Drop PDF
           {multiple && <span>Multiple files supported</span>}
         </div>
       )}
-      <input ref={inputRef} type="file" accept={acceptStr} multiple={multiple} onChange={e => handle(e.target.files)} aria-hidden="true" />
+      <input ref={inputRef} type="file" accept={acceptStr} multiple={multiple} onChange={e => handle(e.target.files)} aria-hidden="true" style={{ display: "none" }} />
     </div>
   );
 }

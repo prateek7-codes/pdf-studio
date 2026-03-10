@@ -1897,13 +1897,11 @@ const TOOL_COMPONENTS = {
 };
 
 
-// ─── HOME PAGE ─────────────────────────────────────────────────────────────────
-function HomePage({ onOpenTool, addToast }) {
-  const [search, setSearch] = useState("");
-  const filtered = search.trim()
-    ? TOOLS.filter(t => t.label.toLowerCase().includes(search.toLowerCase()) || t.desc.toLowerCase().includes(search.toLowerCase()))
-    : TOOLS;
+// ─── HOME PAGE ────────────────────────────────────────────────────────────────
+// REPLACE everything from line 1900 to line 1999 in your page.jsx with this.
+// (from "function HomePage" all the way to the closing brace before "// ─── TOOL PAGE WRAPPER")
 
+function HomePage({ onOpenTool, addToast }) {
   return (
     <>
       <div className="hero">
@@ -1922,25 +1920,13 @@ function HomePage({ onOpenTool, addToast }) {
       </div>
 
       <div className="section">
-        <div className="search-wrap">
-          <span className="search-icon" aria-hidden>⌕</span>
-          <input
-            className="search-input"
-            placeholder="Search tools…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            aria-label="Search PDF tools"
-          />
-          {search && <button className="search-clear" onClick={() => setSearch("")} aria-label="Clear search">✕</button>}
-        </div>
-
         <div className="section-header">
           <span className="section-label">— All Tools</span>
-          <span className="section-count">{filtered.length} tools</span>
+          <span className="section-count">{TOOLS.length} tools</span>
         </div>
 
         <div className="tools-grid" role="list" aria-label="PDF tools">
-          {filtered.map((tool, i) => (
+          {TOOLS.map((tool, i) => (
             <div
               key={tool.id}
               className="tool-card fade-up"
@@ -1960,11 +1946,6 @@ function HomePage({ onOpenTool, addToast }) {
               <span className="tool-arrow" aria-hidden>→</span>
             </div>
           ))}
-          {filtered.length === 0 && (
-            <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "40px", color: "var(--muted)", fontSize: "0.875rem" }}>
-              No tools match "{search}"
-            </div>
-          )}
         </div>
       </div>
 
@@ -1975,14 +1956,20 @@ function HomePage({ onOpenTool, addToast }) {
           borderRadius: "24px", padding: "44px 40px", textAlign: "center"
         }}>
           <div style={{ fontSize: "2rem", marginBottom: "14px" }}>🔐</div>
-          <h2 style={{ fontFamily: "Syne, sans-serif", fontSize: "1.4rem", fontWeight: 800, marginBottom: "10px", letterSpacing: "-0.02em" }}>
-            Privacy You Can Trust
+          <h2 style={{
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            fontSize: "1.4rem", fontWeight: 800,
+            marginBottom: "10px", letterSpacing: "-0.02em"
+          }}>
+            Your Files Never Leave Your Device
           </h2>
           <p style={{ color: "var(--muted)", maxWidth: "460px", margin: "0 auto", lineHeight: 1.7, fontSize: "0.875rem" }}>
-            PDF Studio processes everything using pdf-lib entirely within your browser's JavaScript sandbox. No files are ever transmitted. Works offline. Open source.
+            When you use PDF Studio, your files stay on your computer the entire time.
+            Nothing is uploaded to the internet — everything happens right inside your browser,
+            just like a desktop app. Close the tab and it's as if nothing ever happened.
           </p>
           <div className="footer-features" style={{ marginTop: "24px" }}>
-            {["No uploads","No accounts","No tracking","Offline capable","Open source","Zero servers"].map(f => (
+            {["No uploads","No accounts","No tracking","Works offline","Free forever","Zero servers"].map(f => (
               <div className="footer-feature" key={f}>✓ {f}</div>
             ))}
           </div>
@@ -1994,10 +1981,9 @@ function HomePage({ onOpenTool, addToast }) {
         <p>Privacy-first PDF toolkit · Powered by pdf-lib · Runs entirely in your browser</p>
         <div style={{ marginTop: 10, opacity: 0.6 }}>Press <kbd style={{ padding: "1px 6px", borderRadius: 4, border: "1px solid var(--border)", background: "var(--surface2)", fontSize: "0.7rem" }}>?</kbd> for keyboard shortcuts</div>
       </footer>
-        </>
+    </>
   );
 }
-
 
 // ─── TOOL PAGE WRAPPER ────────────────────────────────────────────────────────
 function ToolPage({ tool, onBack, addToast }) {

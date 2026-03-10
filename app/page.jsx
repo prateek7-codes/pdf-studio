@@ -266,26 +266,8 @@ let _pdfLib = null;
 
 async function loadPdfLib() {
   if (_pdfLib) return _pdfLib;
-
-  if (window.PDFLib) {
-    _pdfLib = window.PDFLib;
-    return _pdfLib;
-  }
-
-  return new Promise((resolve, reject) => {
-    const s = document.createElement("script");
-    s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js";
-
-    s.onload = () => {
-      _pdfLib = window.PDFLib;
-      resolve(_pdfLib);
-    };
-
-    s.onerror = () =>
-      reject(new Error("Failed to load pdf-lib. Check your connection."));
-
-    document.head.appendChild(s);
-  });
+  _pdfLib = await import("pdf-lib");
+  return _pdfLib;
 }
 
 function readAsArrayBuffer(file) {

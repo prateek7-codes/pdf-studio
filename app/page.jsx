@@ -2453,8 +2453,9 @@ function HomePage({ onOpenTool, addToast }) {
         </p>
         <div className="hero-cta-row fade-up fade-up-3">
           <div className="privacy-pill">
-            <span>🟢</span> All processing is local to your device
-          </div>
+  <svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true"><circle cx="4" cy="4" r="4" fill="var(--success)"/></svg>
+  All processing is local to your device
+</div>
         </div>
       </div>
 
@@ -2540,8 +2541,9 @@ function ToolPage({ tool, onBack, addToast }) {
         </div>
         <p className="tool-page-sub">{tool.desc}</p>
         <div className="tool-privacy-badge">
-          🔒 Files processed locally — never uploaded anywhere
-        </div>
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+  Files processed locally — never uploaded anywhere
+</div>
       </div>
       {ToolComp ? <ToolComp addToast={addToast} /> : (
         <div style={{ textAlign: "center", padding: "60px 0", color: "var(--muted)" }}>

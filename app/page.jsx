@@ -1815,9 +1815,9 @@ function CompressTool({ addToast }) {
             lineHeight: 1.6,
           }}>
             ⚠️ Maximum mode converts pages to images for the smallest file size.
-            Text in the output PDF won't be selectable or searchable.
-            Use Balanced if you need to copy text from the file.
-          </div>
+  {"Text in the output PDF won't be selectable or searchable."}
+  Use Balanced if you need to copy text from the file.
+</div>
         )}
       </div>
 
@@ -2504,10 +2504,10 @@ function HomePage({ onOpenTool, addToast }) {
             Your Files Never Leave Your Device
           </h2>
           <p style={{ color: "var(--muted)", maxWidth: "460px", margin: "0 auto", lineHeight: 1.7, fontSize: "0.875rem" }}>
-            When you use PDF Studio, your files stay on your computer the entire time.
-            Nothing is uploaded to the internet — everything happens right inside your browser,
-            just like a desktop app. Close the tab and it's as if nothing ever happened.
-          </p>
+  When you use PDF Studio, your files stay on your computer the entire time.
+  Nothing is uploaded to the internet — everything happens right inside your browser,
+  just like a desktop app. Close the tab and {"it's"} as if nothing ever happened.
+</p>
           <div className="footer-features" style={{ marginTop: "24px" }}>
             {["No uploads","No accounts","No tracking","Works offline","Free forever","Zero servers"].map(f => (
               <div className="footer-feature" key={f}>✓ {f}</div>

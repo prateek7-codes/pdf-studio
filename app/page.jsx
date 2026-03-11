@@ -236,6 +236,7 @@ const TOOLS = [
   { id: "jpg-to-pdf",  icon: <IconImageToPdf />,   label: "JPG → PDF",       desc: "Convert images to PDF format",           color: "#14b8a6", kbd: "J" },
   { id: "protect",     icon: <IconProtect />,      label: "Protect PDF",     desc: "Password-lock your documents",           color: "#ef4444", kbd: "P" },
   { id: "batch",       icon: <IconBatch />,        label: "Batch Process",   desc: "Process multiple PDFs at once",          color: "#ec4899", kbd: "B" },
+  { id: "esign", icon: <IconESign />, label: "E-Sign PDF", desc: "Draw or type your signature", color: "#0ea5e9", kbd: "E" },
 ];
 
 // ─── UNDO HISTORY ─────────────────────────────────────────────────────────────
@@ -2036,6 +2037,391 @@ async function renderThumbnail(canvas, file, pageIndex) {
   canvas.dataset.rendering = "false";
 }
 
+// ─── E-SIGNATURE TOOL ─────────────────────────────────────────────────────────
+// Add this entire block to your page.jsx in TWO places:
+//
+// PLACE 1: Add the ESignTool function somewhere before TOOL_COMPONENTS (e.g. after BatchTool)
+// PLACE 2: Update TOOLS array and TOOL_COMPONENTS (instructions at the bottom)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function IconESign({ size = 20, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 19H4a1 1 0 0 1 0-2h16" />
+      <path d="M7.5 17c0 0 1.5-6 4.5-6s2 4 4 4 2-3 3-3" />
+      <path d="M3 5h11" />
+      <path d="M12 5V3" />
+    </svg>
+  );
+}
+
+function ESignTool({ addToast }) {
+  const [file, setFile] = useState(null);
+  const [mode, setMode] = useState("draw"); // "draw" | "type"
+  const [typedSig, setTypedSig] = useState("");
+  const [typedFont, setTypedFont] = useState("Dancing Script");
+  const [pageNum, setPageNum] = useState(1);
+  const [pageCount, setPageCount] = useState(1);
+  const [position, setPosition] = useState({ x: 50, y: 20 }); // % from left, % from bottom
+  const [sigSize, setSigSize] = useState(48);
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState(null);
+  const [result, setResult] = useState(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [hasDrawing, setHasDrawing] = useState(false);
+
+  const canvasRef = useRef(null);
+  const lastPos = useRef(null);
+
+  // Load Google Font for typed signatures
+  useEffect(() => {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Pacifico&family=Caveat:wght@700&family=Sacramento&display=swap";
+    document.head.appendChild(link);
+    return () => document.head.removeChild(link);
+  }, []);
+
+  // Handle file upload — load PDF and get page count
+  const handleFile = async (newFiles) => {
+    if (!newFiles.length) return;
+    const f = newFiles[0];
+    setFile(f);
+    setResult(null);
+    setError(null);
+    try {
+      const { PDFDocument } = await import("pdf-lib");
+      const buf = await f.arrayBuffer();
+      const pdf = await PDFDocument.load(buf, { ignoreEncryption: true });
+      setPageCount(pdf.getPageCount());
+      setPageNum(1);
+    } catch (e) {
+      setError("Could not read PDF: " + e.message);
+    }
+  };
+
+  // ── Canvas drawing ──────────────────────────────────────────────────────────
+  const getPos = (e, canvas) => {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: (clientX - rect.left) * (canvas.width / rect.width),
+      y: (clientY - rect.top)  * (canvas.height / rect.height),
+    };
+  };
+
+  const startDraw = (e) => {
+    e.preventDefault();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    setIsDrawing(true);
+    lastPos.current = getPos(e, canvas);
+  };
+
+  const draw = (e) => {
+    e.preventDefault();
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    const pos = getPos(e, canvas);
+    ctx.beginPath();
+    ctx.moveTo(lastPos.current.x, lastPos.current.y);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.strokeStyle = "#1a1a2e";
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.stroke();
+    lastPos.current = pos;
+    setHasDrawing(true);
+  };
+
+  const stopDraw = () => setIsDrawing(false);
+
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    setHasDrawing(false);
+  };
+
+  // ── Get signature as PNG data URL ───────────────────────────────────────────
+  const getSignatureDataUrl = () => {
+    if (mode === "draw") {
+      return canvasRef.current?.toDataURL("image/png");
+    }
+    // Typed signature — render to an offscreen canvas
+    const canvas = document.createElement("canvas");
+    canvas.width = 400;
+    canvas.height = 120;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, 400, 120);
+    ctx.font = `72px '${typedFont}', cursive`;
+    ctx.fillStyle = "#1a1a2e";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(typedSig, 200, 60);
+    return canvas.toDataURL("image/png");
+  };
+
+  // ── Apply signature to PDF ──────────────────────────────────────────────────
+  const handleSign = async () => {
+    if (!file) { setError("Please upload a PDF first."); return; }
+    if (mode === "draw" && !hasDrawing) { setError("Please draw your signature first."); return; }
+    if (mode === "type" && !typedSig.trim()) { setError("Please type your signature."); return; }
+
+    setError(null); setProcessing(true); setResult(null);
+
+    try {
+      const { PDFDocument } = await import("pdf-lib");
+      const buf = await file.arrayBuffer();
+      const pdf = await PDFDocument.load(buf, { ignoreEncryption: true });
+
+      const sigDataUrl = getSignatureDataUrl();
+      const base64 = sigDataUrl.split(",")[1];
+      const pngBytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+      const pngImage = await pdf.embedPng(pngBytes);
+
+      const page = pdf.getPage(pageNum - 1);
+      const { width, height } = page.getSize();
+
+      // Position: x% from left, y% from bottom
+      const imgW = sigSize * 4;
+      const imgH = sigSize;
+      const x = (position.x / 100) * width;
+      const y = (position.y / 100) * height;
+
+      page.drawImage(pngImage, {
+        x: Math.min(x, width - imgW),
+        y: Math.min(y, height - imgH),
+        width: imgW,
+        height: imgH,
+        opacity: 1,
+      });
+
+      const bytes = await pdf.save();
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      const base = file.name.replace(/\.pdf$/i, "");
+      setResult({ blob, name: `${base}_signed.pdf` });
+      addToast("success", "Signature added!");
+    } catch (e) {
+      setError(e.message || "Failed to add signature.");
+    }
+    setProcessing(false);
+  };
+
+  const fonts = [
+    { id: "Dancing Script", label: "Elegant" },
+    { id: "Pacifico",       label: "Bold" },
+    { id: "Caveat",         label: "Casual" },
+    { id: "Sacramento",     label: "Formal" },
+  ];
+
+  return (
+    <div>
+      {/* Step 1 — Upload PDF */}
+      {!file ? (
+        <Dropzone onFiles={handleFile} multiple={false} label="Drop a PDF to sign" hint=".pdf file" />
+      ) : (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 12,
+          background: "var(--surface)", border: "1px solid var(--border)",
+          borderRadius: 12, padding: "10px 14px", marginBottom: 20,
+        }}>
+          <div style={{ width: 34, height: 34, background: "rgba(var(--accent-rgb),0.08)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem" }}>📄</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: "0.83rem", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.name}</div>
+            <div style={{ fontSize: "0.7rem", color: "var(--muted)", marginTop: 2 }}>{pageCount} page{pageCount > 1 ? "s" : ""}</div>
+          </div>
+          <button className="btn-ghost" style={{ padding: "4px 10px", fontSize: "0.75rem" }} onClick={() => { setFile(null); setResult(null); setHasDrawing(false); }}>
+            Change
+          </button>
+        </div>
+      )}
+
+      {file && (
+        <>
+          {/* Step 2 — Create signature */}
+          <div className="options-panel">
+            <div className="options-panel-header">
+              <span className="options-panel-label">Your Signature</span>
+            </div>
+
+            {/* Mode toggle */}
+            <div className="seg-btns" style={{ marginBottom: 16 }}>
+              <button className={`seg-btn${mode === "draw" ? " active" : ""}`} onClick={() => setMode("draw")}>✏️ Draw</button>
+              <button className={`seg-btn${mode === "type" ? " active" : ""}`} onClick={() => setMode("type")}>T Type</button>
+            </div>
+
+            {mode === "draw" && (
+              <div>
+                <div style={{
+                  background: "#ffffff",
+                  border: "2px dashed rgba(0,0,0,0.15)",
+                  borderRadius: 12,
+                  overflow: "hidden",
+                  cursor: "crosshair",
+                  touchAction: "none",
+                  userSelect: "none",
+                }}>
+                  <canvas
+                    ref={canvasRef}
+                    width={600}
+                    height={160}
+                    style={{ display: "block", width: "100%", height: 160 }}
+                    onMouseDown={startDraw}
+                    onMouseMove={draw}
+                    onMouseUp={stopDraw}
+                    onMouseLeave={stopDraw}
+                    onTouchStart={startDraw}
+                    onTouchMove={draw}
+                    onTouchEnd={stopDraw}
+                  />
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+                  <span style={{ fontSize: "0.72rem", color: "var(--muted)" }}>
+                    {hasDrawing ? "✓ Signature drawn" : "Draw your signature above"}
+                  </span>
+                  <button className="btn-ghost" style={{ padding: "3px 10px", fontSize: "0.72rem" }} onClick={clearCanvas}>
+                    Clear
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {mode === "type" && (
+              <div>
+                <input
+                  className="option-input"
+                  placeholder="Type your name…"
+                  value={typedSig}
+                  onChange={e => setTypedSig(e.target.value)}
+                  style={{ marginBottom: 12, fontSize: "1rem" }}
+                />
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+                  {fonts.map(f => (
+                    <button
+                      key={f.id}
+                      onClick={() => setTypedFont(f.id)}
+                      style={{
+                        padding: "6px 14px", borderRadius: 8, border: "1px solid",
+                        borderColor: typedFont === f.id ? "var(--accent)" : "var(--border)",
+                        background: typedFont === f.id ? "rgba(var(--accent-rgb),0.1)" : "var(--surface2)",
+                        color: typedFont === f.id ? "var(--accent)" : "var(--muted)",
+                        fontFamily: `'${f.id}', cursive`,
+                        fontSize: "1rem", cursor: "pointer",
+                      }}
+                    >
+                      {typedSig || "Signature"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Step 3 — Placement options */}
+          <div className="options-panel" style={{ marginTop: 12 }}>
+            <div className="options-panel-header">
+              <span className="options-panel-label">Placement</span>
+            </div>
+            <div className="option-grid">
+              {pageCount > 1 && (
+                <div className="option-field">
+                  <label className="option-field-label">Page</label>
+                  <input
+                    className="option-input"
+                    type="number" min={1} max={pageCount}
+                    value={pageNum}
+                    onChange={e => setPageNum(Math.min(pageCount, Math.max(1, parseInt(e.target.value) || 1)))}
+                  />
+                  <span style={{ fontSize: "0.7rem", color: "var(--muted)" }}>of {pageCount}</span>
+                </div>
+              )}
+              <div className="option-field">
+                <label className="option-field-label">Size</label>
+                <input
+                  className="option-input"
+                  type="range" min={24} max={96} step={4}
+                  value={sigSize}
+                  onChange={e => setSigSize(parseInt(e.target.value))}
+                />
+                <span style={{ fontSize: "0.7rem", color: "var(--muted)" }}>{sigSize}px</span>
+              </div>
+            </div>
+
+            {/* Position grid — 9 positions */}
+            <div style={{ marginTop: 12 }}>
+              <div className="option-field-label" style={{ marginBottom: 8 }}>Position on page</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6, maxWidth: 200 }}>
+                {[
+                  { label: "↖", x: 5,  y: 78 }, { label: "↑", x: 50, y: 78 }, { label: "↗", x: 85, y: 78 },
+                  { label: "←", x: 5,  y: 50 }, { label: "·", x: 50, y: 50 }, { label: "→", x: 85, y: 50 },
+                  { label: "↙", x: 5,  y: 8  }, { label: "↓", x: 50, y: 8  }, { label: "↘", x: 85, y: 8  },
+                ].map(p => (
+                  <button
+                    key={p.label}
+                    onClick={() => setPosition({ x: p.x, y: p.y })}
+                    style={{
+                      padding: "8px", borderRadius: 6, border: "1px solid",
+                      borderColor: position.x === p.x && position.y === p.y ? "var(--accent)" : "var(--border)",
+                      background: position.x === p.x && position.y === p.y ? "rgba(var(--accent-rgb),0.12)" : "var(--surface2)",
+                      color: position.x === p.x && position.y === p.y ? "var(--accent)" : "var(--muted)",
+                      cursor: "pointer", fontSize: "0.9rem",
+                    }}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <ErrorBox message={error} onDismiss={() => setError(null)} />
+
+          {processing && <ProgressBar value={66} label="Adding signature" />}
+
+          {result && (
+            <div className="result-success" role="alert" style={{ marginTop: 16 }}>
+              <div className="result-success-header">
+                <span className="result-success-icon">✅</span>
+                <div>
+                  <div className="result-success-title">Signed PDF ready</div>
+                  <div className="result-success-sub">{(result.blob.size / 1048576).toFixed(2)} MB</div>
+                </div>
+              </div>
+              <div className="result-items">
+                <div className="result-item">
+                  <span className="result-item-icon">📄</span>
+                  <div className="result-item-info">
+                    <div className="result-item-name">{result.name}</div>
+                  </div>
+                  <button className="result-item-dl" onClick={() => { downloadBlob(result.blob, result.name); addToast("success", "Downloading signed PDF"); }}>
+                    ⬇ Download
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="actions" style={{ marginTop: 16 }}>
+            <button className="btn-primary" onClick={handleSign} disabled={processing}>
+              {processing ? "Signing…" : "✍️ Apply Signature"}
+            </button>
+            {result && (
+              <button className="btn-ghost" onClick={() => setResult(null)}>Sign again</button>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+
+
+
 const TOOL_COMPONENTS = {
   merge:       (p) => <MergeTool {...p} />,
   split:       (p) => <SplitTool {...p} />,
@@ -2046,6 +2432,7 @@ const TOOL_COMPONENTS = {
   pagenumbers: (p) => <PageNumbersTool {...p} />,
   "jpg-to-pdf":(p) => <JpgToPdfTool {...p} />,
   batch:       (p) => <BatchTool {...p} />,
+  esign: (p) => <ESignTool {...p} />,
 };
 
 

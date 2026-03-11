@@ -2517,7 +2517,7 @@ function HomePage({ onOpenTool, addToast }) {
 
       <footer className="footer" role="contentinfo">
         <div className="footer-logo">PDF Studio</div>
-        <p>Privacy-first PDF toolkit · Powered by pdf-lib · Runs entirely in your browser</p>
+        <p>Privacy-first PDF toolkit · 100% local processing · No uploads ever</p>
         <div style={{ marginTop: 10, opacity: 0.6 }}>Press <kbd style={{ padding: "1px 6px", borderRadius: 4, border: "1px solid var(--border)", background: "var(--surface2)", fontSize: "0.7rem" }}>?</kbd> for keyboard shortcuts</div>
       </footer>
     </>

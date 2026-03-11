@@ -2597,10 +2597,10 @@ const [activeTool, setActiveTool] = useState(initialTool);
       <style>{getCSS(theme)}</style>
 
       <div className="studio" role="application" aria-label="PDF Studio">
-        <div className="privacy-banner" role="banner" aria-label="Privacy notice">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          Your files never leave this device — all processing is local
-        </div>
+  <div className="privacy-banner" role="banner" aria-label="Privacy notice">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    Your files never leave this device — all processing is local
+  </div>
 
         <nav className="nav" aria-label="Main navigation">
           <div className="nav-left">
